@@ -117,9 +117,20 @@ public class SimpleServer {
             OutputStream out = client.getOutputStream();
 
             HttpRequest request = parseRequest(in);
+            System.out.println(request);
+
+            handleRequest(request,out);
+            System.out.println("Response sent to "+client.getInetAddress());
         }
         catch (IOException e){
-
+            System.out.println("Error handling client "+e.getMessage());
+        }
+        finally {
+            try{
+                client.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -129,18 +140,10 @@ public class SimpleServer {
         System.out.println("Server listening on port 8080...");
 
 
-        Socket client = serverSocket.accept();
-        System.out.println("Connection from: " + client.getInetAddress());
-
-        BufferedReader bf = new BufferedReader(new InputStreamReader(client.getInputStream()));
-        OutputStream out = client.getOutputStream();
-
-        HttpRequest request = parseRequest(bf);
-        System.out.println(request);
-
-        handleRequest(request, out);
-        System.out.println("Sending response...");
-        client.close();
-        serverSocket.close();
+        while (true){
+            Socket client  = serverSocket.accept();
+            Thread thread = new Thread(() -> handleClient(client));
+            thread.start();
+        }
     }
 }
