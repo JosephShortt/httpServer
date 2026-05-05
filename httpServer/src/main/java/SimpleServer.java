@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +48,17 @@ public class SimpleServer {
         return new HttpRequest(method,path,version,headers);
     }
 
+    static void sendResponse(OutputStream out, int statusCode, String statusMessage, String body) throws IOException {
+        String reponse = "HTTP/1.1" + statusCode + " " + statusMessage + "\r\n" +
+                "Content-Type: text/html\r\n" +
+                "Content-Length: " + body.length()+"\r\n" +
+                "\r\n" +
+                body;
+
+        out.write(reponse.getBytes());
+        out.flush();
+    }
+
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8080);
         System.out.println("Server listening on port 8080...");
@@ -56,11 +68,13 @@ public class SimpleServer {
         System.out.println("Connection from: " + client.getInetAddress());
 
         BufferedReader bf = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
+        OutputStream out = client.getOutputStream();
 
         HttpRequest request = parseRequest(bf);
         System.out.println(request);
 
+        String body = "<html><body><h1>Hello from my java http server!</h1><p>Path: " +request.path + "</p></body></html>";
+        sendResponse(out, 200, "OK", body);
 
         client.close();
         serverSocket.close();
