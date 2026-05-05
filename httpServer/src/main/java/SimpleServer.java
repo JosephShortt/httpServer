@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class SimpleServer {
 
+    //inner class defining the http request object
     static class HttpRequest{
         String method;
         String path;
@@ -29,6 +30,7 @@ public class SimpleServer {
     }
 
 
+    //parses the request line and headers
     static HttpRequest parseRequest(BufferedReader in) throws IOException {
         //parse request line
         String requestLine = in.readLine();
@@ -47,6 +49,7 @@ public class SimpleServer {
             headers.put(key,val);
         }
 
+        //retrieve content length from map to effectivly read the body
         String body = " ";
         if(headers.containsKey("content-length")){
             int contentLength = Integer.parseInt(headers.get("content-length"));
@@ -58,6 +61,7 @@ public class SimpleServer {
         return new HttpRequest(method,path,version,headers,body);
     }
 
+    //send response method writes status code, message and the message mody to the client
     static void sendResponse(OutputStream out, int statusCode, String statusMessage, String body) throws IOException {
         byte[] bodyBytes = body.getBytes("UTF-8");
         String headers = "HTTP/1.1 " + statusCode + " " + statusMessage + "\r\n" +
@@ -72,6 +76,7 @@ public class SimpleServer {
         out.flush();
     }
 
+    //Handle request method includes get and post
     static void handleRequest(HttpRequest request, OutputStream out) throws IOException {
         if(request.method.equals("GET")){
             switch(request.path){
@@ -111,6 +116,7 @@ public class SimpleServer {
 
     }
 
+    //Handle client method called whenever a client connects to socket
     static void handleClient(Socket client){
         try{
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -134,7 +140,7 @@ public class SimpleServer {
         }
     }
 
-
+    //main method to run threads for connecting clients
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8080);
         System.out.println("Server listening on port 8080...");
